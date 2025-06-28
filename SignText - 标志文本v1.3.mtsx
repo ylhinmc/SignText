@@ -1,0 +1,98 @@
+// require MT >= 2.18.4
+// author: MeiChenYa
+// email: meichenya1114@qq.com
+// st-vers: 1.3
+// 2025,5,13
+{
+	name: ["SignText",".st"]
+	ignoreCase: true
+	styles: [
+		"A",#B2B2B2,#737373,@I
+		"B",#F2A455,#CC8033,@B
+		"C",#NULL$FFEECC,#NULL$4C3D2E
+		"D",#B250B2,#9E7CBF
+		"E",#568BBF,#7399BF
+		"F",#B2A61B,#8C8C00
+		"G",#5C991F,#628C38
+		"H",#1A1AFF,#CCCC00
+		"I",#11A6A6,#1F9999
+		"J",#E61717,#B23636
+		"K",@U
+		"L",@S
+	]
+	comment: {startsWith: "#",insertSpace: false,addToContains: false}
+	defines: [
+		"a": {match: /(?m)^[ \t]*(!|(@))?[ \t]*/,1: "B",2: "C"}
+		"b": /(?:v\d+(?:\.\d+){0,3})(?![^\s#:=_,])/
+		"c": [
+			{match: /\\[\\st:=#]/,0: "B"}
+			{match: /\b(?:signtext)\b/,0: "B"}
+			{match: /\b/+include("b"),0: "H"}
+		]
+		"d": {match: /[\s:=#]/}
+		"e": /(?m)(?:(?<=^[ \t]*[@!]?)|(?<=[ \t:=,/
+	]
+	contains: [
+		{match: /#.*/,0: "A"}
+		{
+			start: {include: "a"}
+			end: {match: /:/}
+			style: "D"
+			mustMatchEnd: true
+			contains: [
+				{include: "c"}
+				{include: "d"} => fail
+			]
+		}
+		{
+			start: {include: "a"}
+			end: {match: /=/}
+			style: "E"
+			mustMatchEnd: true
+			contains: [
+				{include: "c"}
+				{include: "d"} => fail
+			]
+		}
+		{
+			start: {match: /'/,0: "F"}
+			end: {match: /(?m)'|$/,0: "F"}
+			style: "J"
+			contains: [
+				{
+					start: {match: /\/(?=[^'\/\n])/,0: "K"}
+					end: {match: /(?m)(?='|$)/}
+					style: "F"
+					contains: [
+						{match: /\\[t']/,0: "B",0: "K"}
+						{match: /\\.?/} => fail
+						{match: /(?m).+?(?='|$|\\)/,0: "K"}
+					]
+				}
+			]
+		}
+		{
+			start: {match: /"/}
+			end: {match: /(?m)"|$/}
+			style: "G"
+			contains: [
+				{
+					start: {match: /(?=\/)/}
+					end: {match: /(?m)(?="|$)/}
+					style: "J"
+					contains: [
+						{match: /(?m)(?:(?:\/[1-9]\d*\.)+(?:[1-9]\d*\.)*)(?="|$)/,0: "F",0: "K"}
+					]
+				}
+				{match: /\\[\\"\/@!]/,0: "B"}
+				{match: /\\.?/,0: "J",0: "L"}
+				{match: /(?<!\\")(?<=")[@!]/,0: "J",0: "L"}
+			]
+		}
+		{match: /\b(?<!\*)/+include("b"),0: "H"}
+		{match: include("e")+/()^]))(?:[+-]?\d+(?:\.\d+(?:e[+-]?\d+)?)?)(?![^\s#,()^])/,0: "I"}
+		{match: include("e")+/]))(?:\*([a-f\d]{3,8}))(?![^\s#,])/,0: "parseColor(auto,1,HEXA)",1: "K"}
+		{match: keywordsToRegex("all any none true false not and or"),0: "B"}
+		{include: "a"}
+	]
+}
